@@ -2,7 +2,7 @@
 /*
 Plugin Name: Daily Tasks Plugin
 Description: Un plugin para gestionar tareas diarias con imágenes, usuarios y diagrama de Gantt.
-Version: 1.2
+Version: 1.3
 Author: Your Name
 */
 
@@ -83,6 +83,7 @@ function dtp_plugin_page() {
     $tasks_table = $wpdb->prefix . 'daily_tasks';
     $users_table = $wpdb->prefix . 'daily_users';
 
+    // Handle form submissions
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (isset($_POST['new_task'])) {
             $task_name = sanitize_text_field($_POST['task_name']);
@@ -100,6 +101,23 @@ function dtp_plugin_page() {
                 'end_date' => $end_date,
                 'user_id' => $user_id
             ]);
+        } elseif (isset($_POST['edit_task'])) {
+            $task_id = intval($_POST['task_id']);
+            $task_name = sanitize_text_field($_POST['task_name']);
+            $task_description = sanitize_textarea_field($_POST['task_description']);
+            $task_image = esc_url_raw($_POST['task_image']);
+            $start_date = sanitize_text_field($_POST['start_date']);
+            $end_date = sanitize_text_field($_POST['end_date']);
+            $user_id = intval($_POST['user_id']);
+
+            $wpdb->update($tasks_table, [
+                'task_name' => $task_name,
+                'task_description' => $task_description,
+                'task_image' => $task_image,
+                'start_date' => $start_date,
+                'end_date' => $end_date,
+                'user_id' => $user_id
+            ], ['id' => $task_id]);
         } elseif (isset($_POST['delete_task'])) {
             $task_id = intval($_POST['task_id']);
             $wpdb->delete($tasks_table, ['id' => $task_id]);
@@ -109,6 +127,7 @@ function dtp_plugin_page() {
         }
     }
 
+    // Fetch tasks and users
     $tasks = $wpdb->get_results("SELECT t.*, u.user_name FROM $tasks_table t LEFT JOIN $users_table u ON t.user_id = u.id ORDER BY t.created_at DESC");
     $users = $wpdb->get_results("SELECT * FROM $users_table ORDER BY created_at DESC");
 
@@ -153,7 +172,9 @@ function dtp_plugin_page() {
             echo '<td>' . ($task->is_completed ? 'Completada' : 'Pendiente') . '</td>';
             echo '<td>';
             if (!$task->is_completed) {
-                echo '<form method="POST" style="display:inline;"><input type="hidden" name="task_id" value="' . intval($task->id) . '"><input type="submit" name="complete_task" class="button" value="Completar"></form> ';
+                echo '<form method="POST" style="display:inline;"><input type="hidden" name="task_id" value="' . intval($task->id) . '">';
+                echo '<input type="submit" name="complete_task" class="button" value="Completar"></form> ';
+                echo '<button class="button edit-task" data-task-id="' . intval($task->id) . '">Editar</button> ';
             }
             echo '<form method="POST" style="display:inline;"><input type="hidden" name="task_id" value="' . intval($task->id) . '"><input type="submit" name="delete_task" class="button" value="Eliminar"></form>';
             echo '</td>';
@@ -166,6 +187,40 @@ function dtp_plugin_page() {
     }
 
     echo '</div>';
+
+    // JavaScript para manejar la edición de tareas
+    echo '<script type="text/javascript">
+        jQuery(document).ready(function($) {
+            $(".edit-task").click(function() {
+                var taskId = $(this).data("task-id");
+                var row = $(this).closest("tr");
+
+                var taskName = row.find("td:eq(0)").text().trim();
+                var taskDescription = row.find("td:eq(1)").text().trim();
+                var taskImage = row.find("td:eq(2) img").attr("src");
+                var startDate = row.find("td:eq(3)").text().trim();
+                var endDate = row.find("td:eq(4)").text().trim();
+                var userId = row.find("td:eq(5)").data("user-id");
+
+                $("#task_name").val(taskName);
+                $("#task_description").val(taskDescription);
+                $("#task_image").val(taskImage);
+                $("#task_image_preview").attr("src", taskImage).show();
+                $("#start_date").val(startDate);
+                $("#end_date").val(endDate);
+                $("#user_id").val(userId);
+
+                $("#submit").attr("name", "edit_task").val("Guardar Cambios");
+                $("<input>").attr({
+                    type: "hidden",
+                    name: "task_id",
+                    value: taskId
+                }).appendTo("form");
+
+                $("html, body").animate({ scrollTop: 0 }, "slow");
+            });
+        });
+    </script>';
 }
 
 // Página de administración para gestionar usuarios
