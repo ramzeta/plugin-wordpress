@@ -12,6 +12,7 @@ services:
       WORDPRESS_DB_NAME: exampledb
     volumes:
       - ./wp-content:/var/www/html/wp-content
+      - ./wp-config.php:/var/www/html/wp-config.php  # Montar el archivo wp-config.php personalizado
     depends_on:
       - db
 

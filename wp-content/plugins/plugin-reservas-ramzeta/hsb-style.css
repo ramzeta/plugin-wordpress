@@ -1,0 +1,42 @@
+/* Estilos básicos para el formulario de reserva */
+#hsb-booking-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#hsb-calendar {
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 20px;
+}
+
+#hsb-booking-form {
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+}
+
+#hsb-booking-form label {
+    margin-top: 10px;
+}
+
+#hsb-booking-form input {
+    padding: 8px;
+    margin-top: 5px;
+}
+
+#hsb-booking-form input[type="submit"] {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #0073aa;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+#hsb-response {
+    margin-top: 20px;
+    color: green;
+}
